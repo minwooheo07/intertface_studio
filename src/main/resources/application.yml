@@ -13,6 +13,7 @@ spring:
   sql:
     init:
       mode: always
+      encoding: UTF-8
       schema-locations: classpath:sql/schema-h2.sql
       data-locations: classpath:sql/sample-data.sql
 

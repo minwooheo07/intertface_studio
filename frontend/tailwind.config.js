@@ -31,7 +31,7 @@ export default {
       },
       fontFamily: {
         sans: ["Inter", "Pretendard", "-apple-system", "system-ui", "sans-serif"],
-        mono: ["ui-monospace", "'SF Mono'", "'SFMono-Regular'", "Menlo", "monospace"],
+        mono: ["ui-monospace", "'SF Mono'", "'SFMono-Regular'", "Menlo", "'Cascadia Mono'", "'Cascadia Code'", "Consolas", "monospace"],
       },
       borderRadius: {
         lg: "0.625rem",

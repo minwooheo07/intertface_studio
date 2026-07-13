@@ -72,7 +72,7 @@
 ```
 [REST dryRun] POST https://api.daouoffice.com/public/approval/draft
   headers={}
-  body=productName=SamchullyIF&clientCompanyName=삼천리에너지&clientId=&clientSecret=****&drafterId=E1001&formId=FORM_LEAVE&title=연차+신청서+-+홍길동&docBody=...&externalKey=AP20260710001
+  body=productName=OurServiceIF&clientCompanyName=우리회사&clientId=&clientSecret=****&drafterId=E1001&formId=FORM_LEAVE&title=연차+신청서+-+홍길동&docBody=...&externalKey=AP20260710001
 ```
 
 이 상태에서 매핑이 맞는지 검수한 뒤, 키를 넣고 dryRun을 끄면 그대로 실전송된다.

@@ -27,7 +27,7 @@ function toDetail(m: EditorModel) {
 
 export default function CodeGenTab({ model }: Props) {
   const [kind, setKind] = useState<CodeGenKind>("INTEGRATION");
-  const [basePackage, setBasePackage] = useState("com.samchully.generated");
+  const [basePackage, setBasePackage] = useState("com.example.generated");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [files, setFiles] = useState<CodeGenResult | null>(null);
@@ -143,7 +143,7 @@ export default function CodeGenTab({ model }: Props) {
               })}
             </div>
             {/* 코드 */}
-            <div>
+            <div className="min-w-0">
               {selected && <CodeBox code={files[selected]} className="max-h-[560px]" />}
             </div>
           </div>

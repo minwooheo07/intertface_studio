@@ -96,7 +96,7 @@ export default function App() {
       <div className="min-h-screen">
         <Sidebar />
         <main className="ml-64 min-h-screen">
-          <div className="mx-auto max-w-5xl px-8 py-10 animate-fade-in">
+          <div className="mx-auto max-w-7xl px-8 py-10 animate-fade-in">
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/interfaces" element={<InterfaceList />} />

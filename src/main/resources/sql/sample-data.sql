@@ -41,7 +41,7 @@ VALUES (
   '결재요청→다우 전자결재 기안(데모)',
   'BILLING', 'DAOU', 'DB', 'REST',
   '{"datasource":"local","query":"SELECT REQ_NO, DRAFTER, FORM_ID, TITLE, CONTENT FROM SRC_DEMO_APPROVAL WHERE IF_FLAG = ''N''","markQuery":"UPDATE SRC_DEMO_APPROVAL SET IF_FLAG = ''Y'' WHERE REQ_NO = :REQ_NO"}',
-  '{"url":"https://api.daouoffice.com/public/approval/draft","method":"POST","bodyType":"FORM","charset":"UTF-8","dryRun":true,"auth":{"in":"BODY","fields":{"clientId":"${DAOU_CLIENT_ID}","clientSecret":"${DAOU_CLIENT_SECRET}"}},"constParams":{"productName":"SamchullyIF","productVersion":"1.0","clientCompanyName":"삼천리에너지"}}',
+  '{"url":"https://api.daouoffice.com/public/approval/draft","method":"POST","bodyType":"FORM","charset":"UTF-8","dryRun":true,"auth":{"in":"BODY","fields":{"clientId":"${DAOU_CLIENT_ID}","clientSecret":"${DAOU_CLIENT_SECRET}"}},"constParams":{"productName":"OurServiceIF","productVersion":"1.0","clientCompanyName":"우리회사"}}',
   NULL,
   'REQ_NO',
   'Y',

@@ -100,7 +100,7 @@ export default function ChannelForm({ side, type, value, onChange, error }: Prop
               onValue={(v) => { try { setField("auth", v.trim() ? JSON.parse(v) : ""); } catch { /* 입력 중 무시 */ } }} />
             <TextArea label="고정 파라미터 (constParams JSON)" mono rows={3}
               value={cfg.constParams ? JSON.stringify(cfg.constParams, null, 2) : ""}
-              placeholder='{"productName":"SamchullyIF"}'
+              placeholder='{"productName":"OurServiceIF"}'
               onValue={(v) => { try { setField("constParams", v.trim() ? JSON.parse(v) : ""); } catch { /* 무시 */ } }} />
           </>
         )}

@@ -27,6 +27,7 @@ Thumbs.db
 
 # 프론트 (frontend/는 소스만 커밋. 빌드 산출물은 mvn package 시 생성)
 frontend/node_modules/
+frontend/node/
 frontend/dist/
 # vite 빌드가 채우는 SPA 산출물 (P1에서 레거시 index.html 대체 결정 전까지)
 src/main/resources/static/assets/
