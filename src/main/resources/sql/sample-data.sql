@@ -1,0 +1,57 @@
+-- 데모 소스 데이터 (미전송 상태)
+INSERT INTO SRC_DEMO_BILL (BILL_NO, CUST_NM, AMT, BILL_YMD, IF_FLAG) VALUES ('B20260701001', '한국상사', 150000, '20260701', 'N');
+INSERT INTO SRC_DEMO_BILL (BILL_NO, CUST_NM, AMT, BILL_YMD, IF_FLAG) VALUES ('B20260701002', '대한물산', 230000, '20260701', 'N');
+INSERT INTO SRC_DEMO_BILL (BILL_NO, CUST_NM, AMT, BILL_YMD, IF_FLAG) VALUES ('B20260702001', '서울에너지', 98000, '20260702', 'N');
+
+-- 데모 인터페이스 정의: 매분 실행, BILL_NO를 중복방지 키로 사용
+INSERT INTO IF_MASTER (IF_ID, IF_NAME, SRC_SYSTEM, TGT_SYSTEM, SRC_TYPE, TGT_TYPE, SRC_CONFIG, TGT_CONFIG, CRON_EXPR, DUP_KEY_COLS, USE_YN, DESCRIPTION)
+VALUES (
+  'DEMO_BILL_001',
+  '빌링→ERP 매출전표(데모)',
+  'BILLING', 'DOUZONE', 'DB', 'DB',
+  '{"datasource":"local","query":"SELECT BILL_NO, CUST_NM, AMT, BILL_YMD FROM SRC_DEMO_BILL WHERE IF_FLAG = ''N''","markQuery":"UPDATE SRC_DEMO_BILL SET IF_FLAG = ''Y'' WHERE BILL_NO = :BILL_NO"}',
+  '{"datasource":"local","insertQuery":"INSERT INTO TGT_DEMO_ERP (SLIP_NO, CUST_NM, AMOUNT, SLIP_DT, SRC_CD) VALUES (:SLIP_NO, :CUST_NM, :AMOUNT, :SLIP_DT, :SRC_CD)"}',
+  '0 * * * * ?',
+  'BILL_NO',
+  'Y',
+  '로컬 H2 데모. 매분 실행되어 미전송건을 ERP 테이블로 이관하고 IF_FLAG를 Y로 갱신'
+);
+
+-- 필드 매핑 + 변환룰 시연 (DATEFMT, CONST)
+INSERT INTO IF_MAPPING (IF_ID, SRC_FIELD, TGT_FIELD, TRANSFORM_RULE, SORT_ORDER) VALUES ('DEMO_BILL_001', 'BILL_NO',  'SLIP_NO', NULL, 1);
+INSERT INTO IF_MAPPING (IF_ID, SRC_FIELD, TGT_FIELD, TRANSFORM_RULE, SORT_ORDER) VALUES ('DEMO_BILL_001', 'CUST_NM',  'CUST_NM', NULL, 2);
+INSERT INTO IF_MAPPING (IF_ID, SRC_FIELD, TGT_FIELD, TRANSFORM_RULE, SORT_ORDER) VALUES ('DEMO_BILL_001', 'AMT',      'AMOUNT',  NULL, 3);
+INSERT INTO IF_MAPPING (IF_ID, SRC_FIELD, TGT_FIELD, TRANSFORM_RULE, SORT_ORDER) VALUES ('DEMO_BILL_001', 'BILL_YMD', 'SLIP_DT', 'DATEFMT:yyyyMMdd>yyyy-MM-dd', 4);
+INSERT INTO IF_MAPPING (IF_ID, SRC_FIELD, TGT_FIELD, TRANSFORM_RULE, SORT_ORDER) VALUES ('DEMO_BILL_001', NULL,       'SRC_CD',  'CONST:BILL', 5);
+
+-- ================== 다우오피스 전자결재 기안 연동 (데모, dryRun) ==================
+-- 소스: 로컬 데모 결재요청 테이블 → 타겟: 다우 DOAS 전자결재 기안 API
+-- 키 미발급 상태이므로 dryRun=true : 실제 전송 없이 "보낼 요청"을 로그로 확인.
+-- 키 발급 후 dryRun을 false로, url을 실제 기안 엔드포인트로 바꾸고
+-- 환경변수 DAOU_CLIENT_ID / DAOU_CLIENT_SECRET 를 설정하면 실전송된다.
+
+INSERT INTO SRC_DEMO_APPROVAL (REQ_NO, DRAFTER, FORM_ID, TITLE, CONTENT, IF_FLAG)
+VALUES ('AP20260710001', 'E1001', 'FORM_LEAVE', '연차 신청서 - 홍길동', '7월 15일 연차 사용 신청합니다.', 'N');
+INSERT INTO SRC_DEMO_APPROVAL (REQ_NO, DRAFTER, FORM_ID, TITLE, CONTENT, IF_FLAG)
+VALUES ('AP20260710002', 'E1042', 'FORM_EXPENSE', '지출결의서 - 자재구매', '밸브 자재 구매 150,000원 결재 요청.', 'N');
+
+INSERT INTO IF_MASTER (IF_ID, IF_NAME, SRC_SYSTEM, TGT_SYSTEM, SRC_TYPE, TGT_TYPE, SRC_CONFIG, TGT_CONFIG, CRON_EXPR, DUP_KEY_COLS, USE_YN, DESCRIPTION)
+VALUES (
+  'DAOU_APPR_001',
+  '결재요청→다우 전자결재 기안(데모)',
+  'BILLING', 'DAOU', 'DB', 'REST',
+  '{"datasource":"local","query":"SELECT REQ_NO, DRAFTER, FORM_ID, TITLE, CONTENT FROM SRC_DEMO_APPROVAL WHERE IF_FLAG = ''N''","markQuery":"UPDATE SRC_DEMO_APPROVAL SET IF_FLAG = ''Y'' WHERE REQ_NO = :REQ_NO"}',
+  '{"url":"https://api.daouoffice.com/public/approval/draft","method":"POST","bodyType":"FORM","charset":"UTF-8","dryRun":true,"auth":{"in":"BODY","fields":{"clientId":"${DAOU_CLIENT_ID}","clientSecret":"${DAOU_CLIENT_SECRET}"}},"constParams":{"productName":"SamchullyIF","productVersion":"1.0","clientCompanyName":"삼천리에너지"}}',
+  NULL,
+  'REQ_NO',
+  'Y',
+  '다우 전자결재 기안 연동 데모. 키 미발급이라 dryRun=true(전송 없이 요청내용만 로그). 수동 실행으로 확인.'
+);
+
+-- 매핑: 소스 필드 → 다우 기안 파라미터명
+-- (실제 파라미터명은 발급받은 연동 스펙/양식 가이드에 맞춰 TGT_FIELD만 조정하면 됨)
+INSERT INTO IF_MAPPING (IF_ID, SRC_FIELD, TGT_FIELD, TRANSFORM_RULE, SORT_ORDER) VALUES ('DAOU_APPR_001', 'DRAFTER', 'drafterId', NULL, 1);
+INSERT INTO IF_MAPPING (IF_ID, SRC_FIELD, TGT_FIELD, TRANSFORM_RULE, SORT_ORDER) VALUES ('DAOU_APPR_001', 'FORM_ID', 'formId',    NULL, 2);
+INSERT INTO IF_MAPPING (IF_ID, SRC_FIELD, TGT_FIELD, TRANSFORM_RULE, SORT_ORDER) VALUES ('DAOU_APPR_001', 'TITLE',   'title',     NULL, 3);
+INSERT INTO IF_MAPPING (IF_ID, SRC_FIELD, TGT_FIELD, TRANSFORM_RULE, SORT_ORDER) VALUES ('DAOU_APPR_001', 'CONTENT', 'docBody',   NULL, 4);
+INSERT INTO IF_MAPPING (IF_ID, SRC_FIELD, TGT_FIELD, TRANSFORM_RULE, SORT_ORDER) VALUES ('DAOU_APPR_001', 'REQ_NO',  'externalKey', NULL, 5);

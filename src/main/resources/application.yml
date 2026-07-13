@@ -1,0 +1,48 @@
+spring:
+  application:
+    name: if-engine
+
+  # 기본: 내장 H2 (DB 미정 상태에서 바로 실행 가능)
+  # 실 DB 확정 시 아래 datasource를 교체하고 sql/schema-oracle.sql 또는 schema-mssql.sql 실행
+  datasource:
+    url: jdbc:h2:mem:ifengine;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:sql/schema-h2.sql
+      data-locations: classpath:sql/sample-data.sql
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    open-in-view: false
+
+  quartz:
+    job-store-type: memory   # 운영 이중화 시 jdbc로 전환 권장
+
+  h2:
+    console:
+      enabled: true          # http://localhost:8080/h2-console
+
+server:
+  port: 8080
+
+# 연동 대상 시스템별 데이터소스 (DB 어댑터가 datasource 이름으로 조회)
+# "local" 또는 미지정 시 기본 datasource 사용
+if-engine:
+  datasources: {}
+  # 예시:
+  # datasources:
+  #   douzone:
+  #     url: jdbc:sqlserver://10.0.0.10:1433;databaseName=DZERP;encrypt=false
+  #     username: ifuser
+  #     password: '****'
+  #     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+  #   billing:
+  #     url: jdbc:oracle:thin:@10.0.0.20:1521/BILL
+  #     username: ifuser
+  #     password: '****'

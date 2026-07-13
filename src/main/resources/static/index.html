@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IF 관제 · 삼천리에너지</title>
+<style>
+  :root {
+    --ink: #17222E;
+    --sub: #5A6B7A;
+    --paper: #F4F6F8;
+    --panel: #FFFFFF;
+    --line: #DDE4EA;
+    --flame: #0E6FBE;      /* 가스 불꽃 블루 */
+    --flame-soft: #E8F1FA;
+    --ok: #1F8A5D;
+    --ok-soft: #E6F4EE;
+    --fail: #C9403A;
+    --fail-soft: #FBEAE9;
+    --skip: #7C8794;
+    --skip-soft: #EEF1F4;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { font-size: 15px; }
+  body {
+    font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
+                 "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .mono {
+    font-family: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, "Nanum Gothic Coding", monospace;
+    font-size: 0.86em;
+  }
+
+  /* ── 헤더: 상단에 불꽃 그라데이션 헤어라인 ───────────────── */
+  header {
+    background: var(--panel);
+    border-bottom: 1px solid var(--line);
+    padding: 14px 24px;
+    display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;
+    position: relative;
+  }
+  header::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, #0E6FBE, #2FA7D9 45%, #F0A83C 100%);
+  }
+  header h1 { font-size: 1.15rem; font-weight: 800; letter-spacing: -0.02em; }
+  header .org { color: var(--sub); font-size: 0.85rem; }
+  header .right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+  #asOf { color: var(--sub); font-size: 0.8rem; }
+
+  main { max-width: 1100px; margin: 0 auto; padding: 20px 24px 60px; }
+
+  /* ── 오늘 현황 타일 ─────────────────────────────────────── */
+  .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
+  .tile {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+    padding: 14px 18px;
+  }
+  .tile .label { font-size: 0.78rem; color: var(--sub); letter-spacing: 0.04em; }
+  .tile .num { font-size: 1.9rem; font-weight: 800; letter-spacing: -0.02em; margin-top: 2px; }
+  .tile.ok   .num { color: var(--ok); }
+  .tile.fail .num { color: var(--fail); }
+  .tile.skip .num { color: var(--skip); }
+
+  section { margin-bottom: 28px; }
+  .sec-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .sec-head h2 { font-size: 0.95rem; font-weight: 700; letter-spacing: -0.01em; }
+  .sec-head .hint { color: var(--sub); font-size: 0.78rem; }
+
+  table {
+    width: 100%; border-collapse: collapse; background: var(--panel);
+    border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
+  }
+  th, td { padding: 9px 12px; text-align: left; font-size: 0.85rem; border-top: 1px solid var(--line); }
+  thead th { border-top: none; background: #FAFCFD; color: var(--sub); font-weight: 600; font-size: 0.76rem; letter-spacing: 0.03em; }
+  tbody tr:hover { background: #F8FAFC; }
+
+  /* ── 시그니처: 소스→타겟 파이프라인 셀 ───────────────────── */
+  .pipe { display: inline-flex; align-items: center; gap: 0; white-space: nowrap; }
+  .pipe .sys {
+    border: 1px solid var(--line); background: #FAFCFD; border-radius: 5px;
+    padding: 2px 8px; font-size: 0.74rem; font-weight: 600; color: var(--ink);
+  }
+  .pipe .duct {
+    width: 34px; height: 0; border-top: 2px dashed #B8C6D2; position: relative; margin: 0 2px;
+  }
+  .pipe .duct::after {
+    content: ""; position: absolute; right: -1px; top: -5px;
+    border-left: 7px solid var(--flame); border-top: 4px solid transparent; border-bottom: 4px solid transparent;
+  }
+
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; }
+  .badge.SUCCESS { color: var(--ok);   background: var(--ok-soft); }
+  .badge.FAIL    { color: var(--fail); background: var(--fail-soft); }
+  .badge.SKIP    { color: var(--skip); background: var(--skip-soft); }
+
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
+  .dot.SUCCESS { background: var(--ok); }
+  .dot.SKIP    { background: var(--skip); }
+  .dot.FAIL    { background: var(--fail); animation: pulse 1.4s ease-in-out infinite; }
+  .dot.none    { background: #C7D0D9; }
+  @keyframes pulse { 50% { box-shadow: 0 0 0 5px rgba(201,64,58,0.18); } }
+  @media (prefers-reduced-motion: reduce) { .dot.FAIL { animation: none; } }
+
+  button {
+    font: inherit; font-size: 0.78rem; font-weight: 600; cursor: pointer;
+    border: 1px solid var(--line); background: var(--panel); color: var(--ink);
+    border-radius: 6px; padding: 4px 11px;
+  }
+  button:hover { border-color: var(--flame); color: var(--flame); }
+  button:focus-visible { outline: 2px solid var(--flame); outline-offset: 1px; }
+  button.primary { background: var(--flame); border-color: var(--flame); color: #fff; }
+  button.primary:hover { background: #0B5CA0; color: #fff; }
+  button.danger:hover { border-color: var(--fail); color: var(--fail); }
+  button:disabled { opacity: 0.5; cursor: default; }
+
+  .chips { display: flex; gap: 6px; margin-left: auto; }
+  .chip {
+    border: 1px solid var(--line); background: var(--panel); border-radius: 20px;
+    padding: 3px 12px; font-size: 0.76rem; font-weight: 600; color: var(--sub); cursor: pointer;
+  }
+  .chip.active { background: var(--flame-soft); border-color: var(--flame); color: var(--flame); }
+
+  .detail td { background: #FAFCFD; }
+  .detail pre {
+    white-space: pre-wrap; word-break: break-all; font-size: 0.76rem;
+    background: #F1F5F8; border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; margin: 4px 0 8px;
+  }
+  .detail .k { font-size: 0.74rem; color: var(--sub); font-weight: 700; }
+  .err-cell { color: var(--fail); max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .empty { padding: 26px; text-align: center; color: var(--sub); font-size: 0.85rem; }
+
+  @media (max-width: 720px) {
+    .tiles { grid-template-columns: 1fr; }
+    main { padding: 14px 12px 60px; }
+    th:nth-child(4), td:nth-child(4) { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>인터페이스 관제</h1>
+  <span class="org">삼천리에너지 IF Engine</span>
+  <div class="right">
+    <span id="asOf"></span>
+    <button onclick="reloadJobs()">스케줄 재적재</button>
+    <button class="primary" onclick="loadAll()">새로고침</button>
+  </div>
+</header>
+
+<main>
+  <div class="tiles">
+    <div class="tile ok"><div class="label">오늘 성공</div><div class="num" id="cntOk">-</div></div>
+    <div class="tile fail"><div class="label">오늘 실패</div><div class="num" id="cntFail">-</div></div>
+    <div class="tile skip"><div class="label">오늘 스킵 (중복)</div><div class="num" id="cntSkip">-</div></div>
+  </div>
+
+  <section>
+    <div class="sec-head">
+      <h2>인터페이스</h2>
+      <span class="hint">IF_MASTER 등록 기준 · 흐름은 소스 → 타겟</span>
+    </div>
+    <table>
+      <thead><tr>
+        <th>IF ID</th><th>이름</th><th>흐름</th><th>주기 (cron)</th><th>최근 실행</th><th></th>
+      </tr></thead>
+      <tbody id="ifBody"><tr><td colspan="6" class="empty">불러오는 중…</td></tr></tbody>
+    </table>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>최근 로그</h2>
+      <span class="hint">최근 100건 · 행을 누르면 payload가 열립니다</span>
+      <div class="chips">
+        <span class="chip active" data-f="" onclick="setFilter(this)">전체</span>
+        <span class="chip" data-f="FAIL" onclick="setFilter(this)">실패</span>
+        <span class="chip" data-f="SUCCESS" onclick="setFilter(this)">성공</span>
+        <span class="chip" data-f="SKIP" onclick="setFilter(this)">스킵</span>
+      </div>
+    </div>
+    <table>
+      <thead><tr>
+        <th>시간</th><th>IF</th><th>키</th><th>상태</th><th>메시지</th><th></th>
+      </tr></thead>
+      <tbody id="logBody"><tr><td colspan="6" class="empty">불러오는 중…</td></tr></tbody>
+    </table>
+  </section>
+</main>
+
+<script>
+let filter = "";
+let openLogId = null;
+
+const esc = s => String(s ?? "").replace(/[&<>"']/g,
+  c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const t = s => s ? String(s).replace("T", " ").slice(5, 19) : "-";
+
+async function api(url, opt) {
+  const r = await fetch(url, opt);
+  if (!r.ok) throw new Error(url + " " + r.status);
+  return r.json();
+}
+
+async function loadSummary() {
+  const s = await api("/api/dashboard/summary");
+  cntOk.textContent = s.success;
+  cntFail.textContent = s.fail;
+  cntSkip.textContent = s.skip;
+  asOf.textContent = "갱신 " + t(s.asOf);
+}
+
+async function loadInterfaces() {
+  const list = await api("/api/interfaces");
+  if (!list.length) {
+    ifBody.innerHTML = '<tr><td colspan="6" class="empty">등록된 인터페이스가 없습니다. IF_MASTER에 정의를 추가하세요.</td></tr>';
+    return;
+  }
+  ifBody.innerHTML = list.map(m => `
+    <tr>
+      <td class="mono">${esc(m.ifId)}</td>
+      <td>${esc(m.ifName)}</td>
+      <td><span class="pipe">
+        <span class="sys">${esc(m.srcSystem)}·${esc(m.srcType)}</span>
+        <span class="duct"></span>
+        <span class="sys">${esc(m.tgtSystem)}·${esc(m.tgtType)}</span>
+      </span></td>
+      <td class="mono">${esc(m.cronExpr || "수동")}</td>
+      <td><span class="dot ${m.lastStatus || "none"}"></span>${m.lastStatus ? esc(m.lastStatus) + " · " + t(m.lastAt) : "이력 없음"}</td>
+      <td style="text-align:right"><button onclick="runNow('${esc(m.ifId)}')">실행</button></td>
+    </tr>`).join("");
+}
+
+async function loadLogs() {
+  const list = await api("/api/logs" + (filter ? "?status=" + filter : ""));
+  if (!list.length) {
+    logBody.innerHTML = '<tr><td colspan="6" class="empty">로그가 없습니다.</td></tr>';
+    return;
+  }
+  logBody.innerHTML = list.map(l => `
+    <tr onclick="toggleDetail(${l.logId}, this)" style="cursor:pointer" data-log='${esc(JSON.stringify({s:l.payloadSrc, g:l.payloadTgt, e:l.errorMsg}))}'>
+      <td class="mono">${t(l.createdAt)}</td>
+      <td class="mono">${esc(l.ifId)}</td>
+      <td class="mono">${esc(l.recKey || "-")}</td>
+      <td><span class="badge ${esc(l.status)}">${esc(l.status)}</span> <span style="color:var(--sub);font-size:0.72rem">${esc(l.triggeredBy || "")}</span></td>
+      <td class="err-cell" title="${esc(l.errorMsg || "")}">${esc(l.errorMsg || "")}</td>
+      <td style="text-align:right">${l.status === "FAIL" ? `<button class="danger" onclick="event.stopPropagation(); reprocess(${l.logId})">재처리</button>` : ""}</td>
+    </tr>`).join("");
+}
+
+function toggleDetail(logId, tr) {
+  const next = tr.nextElementSibling;
+  if (next && next.classList.contains("detail")) { next.remove(); openLogId = null; return; }
+  document.querySelectorAll("tr.detail").forEach(e => e.remove());
+  const d = JSON.parse(tr.dataset.log);
+  const row = document.createElement("tr");
+  row.className = "detail";
+  row.innerHTML = `<td colspan="6">
+    <span class="k">원본 (PAYLOAD_SRC)</span><pre class="mono">${esc(d.s || "-")}</pre>
+    <span class="k">변환 결과 (PAYLOAD_TGT)</span><pre class="mono">${esc(d.g || "-")}</pre>
+    ${d.e ? '<span class="k">오류</span><pre class="mono">' + esc(d.e) + "</pre>" : ""}
+  </td>`;
+  tr.after(row);
+  openLogId = logId;
+}
+
+function setFilter(el) {
+  document.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
+  el.classList.add("active");
+  filter = el.dataset.f;
+  loadLogs();
+}
+
+async function runNow(ifId) {
+  try {
+    const r = await api("/api/interfaces/" + ifId + "/run", { method: "POST" });
+    alert(`실행 완료: 대상 ${r.total} · 성공 ${r.success} · 실패 ${r.fail} · 스킵 ${r.skip}`);
+  } catch (e) { alert("실행 실패: " + e.message); }
+  loadAll();
+}
+
+async function reprocess(logId) {
+  if (!confirm("이 건을 원본 payload로 재처리할까요?")) return;
+  try {
+    const r = await api("/api/logs/" + logId + "/reprocess", { method: "POST" });
+    alert("재처리 결과: " + r.result + (r.error ? "\n" + r.error : ""));
+  } catch (e) { alert("재처리 실패: " + e.message); }
+  loadAll();
+}
+
+async function reloadJobs() {
+  try {
+    const r = await api("/api/admin/reload-jobs", { method: "POST" });
+    alert("스케줄 " + r.registered + "건 재적재 완료");
+  } catch (e) { alert("재적재 실패: " + e.message); }
+}
+
+async function loadAll() {
+  try {
+    await Promise.all([loadSummary(), loadInterfaces()]);
+    if (openLogId === null) await loadLogs();
+  } catch (e) { console.error(e); }
+}
+
+loadAll();
+setInterval(loadAll, 30000);
+</script>
+</body>
+</html>

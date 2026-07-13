@@ -1,0 +1,32 @@
+# Maven
+target/
+*.jar
+*.war
+!.mvn/wrapper/maven-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+
+# 로그
+*.log
+logs/
+
+# 시크릿/로컬설정 (환경변수로 주입할 것)
+application-local.yml
+application-prod.yml
+.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# 프론트 (frontend/는 소스만 커밋. 빌드 산출물은 mvn package 시 생성)
+frontend/node_modules/
+frontend/dist/
+# vite 빌드가 채우는 SPA 산출물 (P1에서 레거시 index.html 대체 결정 전까지)
+src/main/resources/static/assets/

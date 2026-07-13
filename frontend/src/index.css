@@ -1,0 +1,210 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===================================================================
+   IF Studio — iOS 감성 관제 콘솔
+   Apple Human Interface 팔레트. 시스템 블루 액센트, 쿨 그레이 배경,
+   순백 카드, 큰 라운드, 부드러운 그림자. 밝은 사이드바(설정앱 느낌).
+   =================================================================== */
+
+:root {
+  --bg: 240 11% 96%;
+  --surface: 0 0% 100%;
+  --elevated: 0 0% 100%;
+  --border: 240 9% 90%;
+  --muted: 240 11% 95%;
+  --fg: 240 6% 10%;
+  --fg-muted: 240 4% 46%;
+  --fg-subtle: 240 4% 64%;
+
+  --accent: 211 100% 50%;
+  --accent-fg: 0 0% 100%;
+  --accent-muted: 211 100% 95%;
+
+  --ok: 145 63% 42%;
+  --warn: 35 100% 50%;
+  --danger: 5 100% 59%;
+
+  --sidebar: 240 11% 98%;
+  --sidebar-fg: 240 6% 12%;
+  --sidebar-muted: 240 4% 48%;
+  --sidebar-active: 211 100% 50%;
+  --sidebar-border: 240 9% 91%;
+
+  --shadow: 240 30% 30%;
+}
+
+.dark {
+  --bg: 240 6% 7%;
+  --surface: 240 5% 11%;
+  --elevated: 240 5% 14%;
+  --border: 240 5% 20%;
+  --muted: 240 5% 15%;
+  --fg: 0 0% 98%;
+  --fg-muted: 240 4% 64%;
+  --fg-subtle: 240 4% 46%;
+
+  --accent: 211 100% 55%;
+  --accent-fg: 0 0% 100%;
+  --accent-muted: 211 60% 18%;
+
+  --ok: 142 71% 52%;
+  --warn: 35 100% 55%;
+  --danger: 5 100% 63%;
+
+  --sidebar: 240 6% 9%;
+  --sidebar-fg: 0 0% 96%;
+  --sidebar-muted: 240 4% 56%;
+  --sidebar-active: 211 100% 55%;
+  --sidebar-border: 240 5% 18%;
+
+  --shadow: 240 60% 1%;
+}
+
+* { border-color: hsl(var(--border)); }
+
+html { font-size: 15px; }
+body {
+  background: hsl(var(--bg));
+  color: hsl(var(--fg));
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+               Inter, Pretendard, "Segoe UI", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+:focus-visible {
+  outline: 2px solid hsl(var(--accent));
+  outline-offset: 2px;
+}
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: hsl(var(--fg-subtle) / 0.4); border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: hsl(var(--fg-subtle) / 0.6); }
+::-webkit-scrollbar-track { background: transparent; }
+
+@layer components {
+  /* iOS 감성 사이드바: 은은한 그라데이션 (위=밝은 화이트, 아래=살짝 쿨블루 틴트) */
+  .sidebar-surface {
+    background:
+      radial-gradient(120% 60% at 50% 0%, hsl(211 100% 97%) 0%, transparent 60%),
+      linear-gradient(180deg, hsl(240 20% 99%) 0%, hsl(220 24% 96%) 100%);
+  }
+  .dark .sidebar-surface {
+    background:
+      radial-gradient(120% 55% at 50% 0%, hsl(211 60% 14%) 0%, transparent 55%),
+      linear-gradient(180deg, hsl(240 8% 11%) 0%, hsl(240 7% 7%) 100%);
+  }
+
+  /* iOS 앱아이콘풍 컬러 컨테이너 */
+  .nav-icon {
+    @apply grid h-8 w-8 shrink-0 place-items-center rounded-[9px] text-white shadow-sm;
+  }
+
+  .pipe { @apply inline-flex items-center gap-0 whitespace-nowrap; }
+  .pipe-node {
+    @apply inline-flex items-center rounded-md bg-muted px-2 py-0.5 font-mono text-xs font-medium text-fg-muted;
+  }
+  .pipe-wire {
+    @apply relative mx-1.5 h-px w-6;
+    background: linear-gradient(90deg, hsl(var(--border)), hsl(var(--accent)));
+  }
+  .pipe-wire--live {
+    height: 2px;
+    background-image: linear-gradient(90deg, hsl(var(--accent)) 0%, hsl(var(--accent)) 40%, transparent 40%, transparent 100%);
+    background-size: 200% 100%;
+    @apply animate-flow;
+  }
+  .pipe-wire::after {
+    content: "";
+    @apply absolute -right-px -top-[3px];
+    border-left: 6px solid hsl(var(--accent));
+    border-top: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+  }
+
+  .card {
+    @apply rounded-2xl bg-surface;
+    box-shadow: 0 1px 2px hsl(var(--shadow) / 0.04), 0 4px 16px -4px hsl(var(--shadow) / 0.06);
+  }
+
+  /* iOS 버튼: pill, 은은한 그림자로 깊이감, 눌림 스케일. 색은 variant 클래스가 담당(.btn은 형태만). */
+  .btn {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold transition-all active:scale-[0.96] disabled:opacity-40 disabled:pointer-events-none;
+  }
+  .btn:hover { transform: translateY(-0.5px); }
+
+  /* 기본(무채색) variant — 별도 클래스라 dark 오버라이드가 primary/danger를 덮어쓰지 않음 */
+  .btn-neutral {
+    color: hsl(var(--fg));
+    background: linear-gradient(180deg, hsl(var(--fg) / 0.06), hsl(var(--fg) / 0.045));
+    box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.5), 0 1px 2px hsl(var(--shadow) / 0.04);
+  }
+  .dark .btn-neutral {
+    background: linear-gradient(180deg, hsl(var(--fg) / 0.09), hsl(var(--fg) / 0.06));
+    box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.04), 0 1px 2px hsl(var(--shadow) / 0.2);
+  }
+  .btn-neutral:hover { filter: brightness(0.97); }
+  .dark .btn-neutral:hover { filter: brightness(1.25); }
+
+  .btn-primary {
+    color: hsl(var(--accent-fg));
+    background: linear-gradient(180deg, hsl(var(--accent) / 1), hsl(var(--accent) / 0.92));
+    box-shadow:
+      inset 0 1px 0 hsl(0 0% 100% / 0.25),
+      0 1px 2px hsl(var(--accent) / 0.15),
+      0 6px 16px -4px hsl(var(--accent) / 0.45);
+  }
+  .btn-primary:hover {
+    filter: brightness(1.06);
+    box-shadow:
+      inset 0 1px 0 hsl(0 0% 100% / 0.3),
+      0 1px 2px hsl(var(--accent) / 0.2),
+      0 8px 20px -3px hsl(var(--accent) / 0.55);
+  }
+
+  .btn-danger {
+    color: white;
+    background: linear-gradient(180deg, hsl(var(--danger) / 1), hsl(var(--danger) / 0.9));
+    box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.25), 0 4px 12px -3px hsl(var(--danger) / 0.4);
+  }
+  .btn-danger:hover { filter: brightness(1.06); }
+
+  .btn-ghost {
+    background: transparent;
+    box-shadow: none;
+    color: hsl(var(--fg-muted));
+  }
+  .btn-ghost:hover { background: hsl(var(--fg) / 0.06); color: hsl(var(--fg)); transform: none; }
+
+  .btn-sm { @apply px-3 py-1.5 text-xs; }
+  .btn-icon { @apply p-2; }
+
+  /* 원형 아이콘 버튼 (헤더 보조 액션용) */
+  .icon-btn {
+    @apply grid h-9 w-9 shrink-0 place-items-center rounded-full transition-all active:scale-90;
+    color: hsl(var(--fg-muted));
+  }
+  .icon-btn:hover { background: hsl(var(--fg) / 0.07); color: hsl(var(--fg)); }
+  .icon-btn.danger:hover { background: hsl(var(--danger) / 0.12); color: hsl(var(--danger)); }
+
+  .input {
+    @apply w-full rounded-xl border border-transparent bg-muted px-3.5 py-2.5 text-sm text-fg placeholder:text-fg-subtle transition-all;
+    @apply focus:outline-none focus:bg-surface focus:border-accent focus:ring-4 focus:ring-accent/15;
+  }
+  .input-mono { @apply font-mono text-[0.82rem]; }
+  .input-invalid { @apply border-danger bg-danger/5 focus:border-danger focus:ring-danger/15; }
+
+  .label { @apply mb-1.5 block text-[0.8rem] font-semibold text-fg; }
+  .hint { @apply mt-1.5 text-xs text-fg-muted; }
+  .err { @apply mt-1.5 text-xs text-danger; }
+
+  .badge { @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold; }
+  .badge-ok { @apply bg-ok/10 text-ok; }
+  .badge-danger { @apply bg-danger/10 text-danger; }
+  .badge-muted { @apply bg-fg/10 text-fg-muted; }
+  .badge-accent { @apply bg-accent/10 text-accent; }
+}
