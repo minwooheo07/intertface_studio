@@ -1,5 +1,5 @@
 import { NavLink, Route, Routes } from "react-router-dom";
-import { LayoutDashboard, Workflow, ScrollText, Send, Moon, Sun } from "lucide-react";
+import { LayoutDashboard, Workflow, ScrollText, Send, Tags, Moon, Sun } from "lucide-react";
 import { useTheme } from "./hooks/useTheme";
 import { LogoSymbol } from "./components/brand/Logo";
 import { cn } from "./lib/cn";
@@ -8,6 +8,8 @@ import InterfaceList from "./pages/InterfaceList";
 import InterfaceEditor from "./pages/InterfaceEditor";
 import LogViewer from "./pages/LogViewer";
 import ApiTester from "./pages/ApiTester";
+import CodeMapList from "./pages/CodeMapList";
+import CodeMapEditor from "./pages/CodeMapEditor";
 import { TooltipProvider } from "./components/ui/Tooltip";
 
 // 각 메뉴에 iOS 앱아이콘풍 컬러 (그라데이션)
@@ -16,6 +18,7 @@ const NAV = [
   { to: "/interfaces", label: "인터페이스", Icon: Workflow, end: false, color: "from-teal-400 to-emerald-500" },
   { to: "/logs", label: "실행이력", Icon: ScrollText, end: false, color: "from-orange-400 to-amber-500" },
   { to: "/api-tester", label: "API 테스트", Icon: Send, end: false, color: "from-violet-400 to-purple-500" },
+  { to: "/code-maps", label: "코드매핑", Icon: Tags, end: false, color: "from-rose-400 to-pink-500" },
 ];
 
 function Sidebar() {
@@ -104,6 +107,8 @@ export default function App() {
               <Route path="/interfaces/:id" element={<InterfaceEditor mode="edit" />} />
               <Route path="/logs" element={<LogViewer />} />
               <Route path="/api-tester" element={<ApiTester />} />
+              <Route path="/code-maps" element={<CodeMapList />} />
+              <Route path="/code-maps/:groupId" element={<CodeMapEditor />} />
             </Routes>
           </div>
         </main>

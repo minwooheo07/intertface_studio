@@ -87,6 +87,18 @@ export interface HttpTestResponse {
   error: string | null;
 }
 
+// 코드매핑 (CODE_MAP)
+export interface CodeMapEntry {
+  id?: number;
+  srcCode: string;
+  tgtCode: string;
+  description: string | null;
+}
+export interface CodeMapGroup {
+  groupId: string;
+  count: number;
+}
+
 // 코드 생성
 export type CodeGenKind = "INTEGRATION" | "CRUD";
 export interface CodeGenRequest {

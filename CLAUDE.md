@@ -202,10 +202,13 @@ mvn spring-boot:run
 - 짝으로 "모뎀 시뮬레이터"(가상 장비) — 실장비 없이 테스트용 전문 송신 서버.
 - **전문 포맷 스펙(고정길이 여부, 헤더구조, 검침 필드 레이아웃)을 사용자에게 먼저 받을 것.** 지어내지 말 것.
 
-### T4. CODEMAP 코드매핑
-- `MappingTransformer`의 `CODEMAP:그룹ID` 룰이 현재 passthrough(TODO). 코드매핑 테이블 연동 필요.
-- `CODE_MAP(GROUP_ID, SRC_CODE, TGT_CODE)` 테이블 + 관리화면 + 룰 실제 구현.
-- 더존 계정코드 ↔ 빌링 코드 매핑에 쓰인다.
+### T4. CODEMAP 코드매핑 ✅ 완료
+- `CODE_MAP(CODE_MAP_ID, GROUP_ID, SRC_CODE, TGT_CODE, DESCRIPTION, SORT_ORDER)` 테이블(h2/oracle/mssql, GROUP_ID+SRC_CODE 유니크).
+- `MappingTransformer`의 `CODEMAP:그룹ID` 룰이 `CodeMapRepository`로 실제 치환. 매핑에 없는 코드는 원본값 유지(데이터 유실 방지).
+- 관리 API: `codemap/CodeMapController`+`CodeMapService`. `GET /api/code-maps/groups`(목록), `GET/PUT/DELETE /api/code-maps/groups/{groupId}`(그룹 단위 전체조회/치환저장/삭제 — IF_MAPPING과 동일 패턴).
+- 관리화면: 사이드바 "코드매핑" 메뉴. `CodeMapList`(그룹 목록+새 그룹) + `CodeMapEditor`(소스코드/타겟코드/설명 행 편집, MappingTab과 동일한 그리드 UX).
+- 데모 데이터: `ACCT_CD` 그룹(더존 계정코드 ↔ 빌링 코드 3건). 필드매핑에서 `TRANSFORM_RULE = 'CODEMAP:ACCT_CD'`로 참조 가능.
+- 검증: test-run으로 매칭(101→4001)·미매칭 원본유지(999→999) 확인. 관리화면 CRUD(생성/행추가/저장/삭제) 브라우저로 확인 완료.
 
 ### T5. NotifyService 실연동
 - 현재 실패 시 로그만 남김. 메일(spring-boot-starter-mail, pom에 주석) 또는 다우 알림 API로.
@@ -224,6 +227,9 @@ MappingTransformer.applyRule:
 - CONST:BILL → "BILL"
 - DEFAULT:00 (null입력) → "00" / (값입력) → 값유지
 - DATEFMT:yyyyMMdd>yyyy-MM-dd, "20260701" → "2026-07-01" / null → null
+- CODEMAP:ACCT_CD, "101"(매핑 있음) → "4001" / "999"(매핑 없음) → "999"(원본유지) / null → null
+  (test-run API로 검증: ad-hoc DB 소스 쿼리 + CODEMAP 룰 조합. src/main/resources/sql/sample-data.sql의
+  ACCT_CD 데모 3건 기준)
 
 buildKey (InterfaceExecutor):
 - 단일키 "BILL_NO" → "B001"

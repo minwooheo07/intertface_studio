@@ -1,6 +1,8 @@
 package com.ifstudio.ifengine.engine.transform;
 
 import com.ifstudio.ifengine.domain.IfMapping;
+import com.ifstudio.ifengine.repository.CodeMapRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -17,10 +19,14 @@ import java.util.Map;
  *  - CONST:값                  : 고정값 (SRC_FIELD 불필요)
  *  - DEFAULT:값                : 소스값이 null이면 기본값
  *  - DATEFMT:yyyyMMdd>yyyy-MM-dd : 날짜 포맷 변환
- *  - CODEMAP:그룹ID            : 코드매핑 (TODO: 코드매핑 테이블 연동)
+ *  - CODEMAP:그룹ID            : CODE_MAP 테이블에서 그룹ID 기준 소스코드->타겟코드 치환.
+ *                                매핑에 없는 코드는 원본값을 그대로 유지한다(데이터 유실 방지).
  */
 @Component
+@RequiredArgsConstructor
 public class MappingTransformer {
+
+    private final CodeMapRepository codeMapRepository;
 
     public Map<String, Object> apply(List<IfMapping> mappings, Map<String, Object> src) {
         Map<String, Object> out = new LinkedHashMap<>();
@@ -48,8 +54,11 @@ public class MappingTransformer {
             return d.format(DateTimeFormatter.ofPattern(p[1].trim()));
         }
         if (rule.startsWith("CODEMAP:")) {
-            // TODO: 코드매핑 테이블(예: CODE_MAP)과 연동해 그룹ID 기준 소스코드->타겟코드 치환
-            return v;
+            if (v == null) return null;
+            String groupId = rule.substring("CODEMAP:".length()).trim();
+            return codeMapRepository.findByGroupIdAndSrcCode(groupId, v.toString().trim())
+                    .map(c -> (Object) c.getTgtCode())
+                    .orElse(v);
         }
         return v;
     }

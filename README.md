@@ -50,7 +50,7 @@ REST 어댑터는 설정 주도로, 다우 전자결재(form-urlencoded)와 Work
 | `CONST:값`                     | 고정값                  | `CONST:BILL`                         |
 | `DEFAULT:값`                   | null이면 기본값          | `DEFAULT:0`                          |
 | `DATEFMT:입력>출력`            | 날짜 포맷 변환           | `DATEFMT:yyyyMMdd>yyyy-MM-dd`        |
-| `CODEMAP:그룹ID`               | 코드매핑 (TODO 연동)     | `CODEMAP:CUST`                       |
+| `CODEMAP:그룹ID`               | 코드매핑 (CODE_MAP 테이블)| `CODEMAP:ACCT_CD`                    |
 
 ## 실행 방법 (로컬 데모)
 
@@ -84,12 +84,16 @@ mvn spring-boot:run
 | POST   | `/api/interfaces/{ifId}/run`      | 수동 즉시 실행           |
 | POST   | `/api/logs/{logId}/reprocess`     | 실패건 재처리            |
 | POST   | `/api/admin/reload-jobs`          | 마스터 변경 후 스케줄 재적재|
+| GET    | `/api/code-maps/groups`           | 코드매핑 그룹 목록       |
+| GET    | `/api/code-maps/groups/{groupId}` | 그룹 내 코드매핑 항목     |
+| PUT    | `/api/code-maps/groups/{groupId}` | 그룹 전체 치환 저장(업서트)|
+| DELETE | `/api/code-maps/groups/{groupId}` | 그룹 삭제                |
 
 ## 다음 확장 (권장 순서)
 
 1. ~~REST 어댑터 → 다우오피스 전자결재 연동~~ ✅ 완료 (`docs-daou-approval.md`)
 2. SOCKET 어댑터 → 모뎀/열량계 전문 (별도 제안한 "모뎀 시뮬레이터"와 짝)
-3. `CODEMAP` 코드매핑 테이블 + 관리화면
+3. ~~`CODEMAP` 코드매핑 테이블 + 관리화면~~ ✅ 완료
 4. NotifyService 실연동 (메일 또는 다우 알림 API)
 5. Quartz job-store를 jdbc로 → 이중화/이력 영속화
 
